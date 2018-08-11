@@ -111,7 +111,7 @@ class BasePlayer:
 
     def _decide_factory_build_location(self, game):
         home_territories = [t['name'] for t in game.active_nation.get_home_territories()]
-        factory_locations = [f['location'] for f in game.active_nation.get_factories()]
+        factory_locations = [f.location for f in game.active_nation.get_factories()]
         return random.choice([x for x in home_territories if x not in factory_locations])
 
     def mutate_cash(self, amount):

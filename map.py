@@ -29,9 +29,8 @@ class Map:
     def create_factory(self, location_name):
         location = self.territories[location_name]
         if location['industry'] is not 'NONE' and not self.factory_ids_by_territory[location_name]:
-            self.factory_directory[self.next_factory_id] = {'industry': location['industry'],
-                                                            'active': True, 'nation': location['nation'],
-                                                            'location': location_name, 'id': self.next_factory_id}
+            self.factory_directory[self.next_factory_id] = \
+                Factory(self.next_factory_id, location['industry'], location_name, location['nation'])
             self.factory_ids_by_territory[location_name].append(self.next_factory_id)
             self.factory_ids_by_nation[location['nation']].append(self.next_factory_id)
             self.next_factory_id += 1
@@ -42,7 +41,7 @@ class Map:
         # TODO active factory provision
         for factory_id in self.factory_ids_by_nation[nation]:
             factory_obj = self.factory_directory[factory_id]
-            self.create_unit(factory_obj['industry'], factory_obj['location'], factory_obj['nation'])
+            self.create_unit(factory_obj.type, factory_obj.location, factory_obj.nation)
 
     def create_unit(self, type, location, nation):
         unit_obj = Unit(self.next_unit_id, type, location, nation)
@@ -223,3 +222,17 @@ class Unit:
 
     def __repr__(self):
         return f"{self.type[0]}.{self.nation[:2]}{self.id}@{self.location}"
+
+
+class Factory:
+
+    def __init__(self, id, type, location, nation):
+        self.id = id
+        self.type = type
+        self.location = location
+        self.nation = nation
+        self.active = True
+
+    def __repr__(self):
+        base_string = f"F({self.type[0]})@{self.location}"
+        return base_string if self.active else f"{base_string}-DISABLED"

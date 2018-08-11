@@ -17,7 +17,7 @@ class Nation:
 
     def get_taxation_value(self):
         # TODO handle disabled factories properly here
-        active_factories = [f for f in self.map.get_factories_of_nation(self.name) if f['active']]
+        active_factories = [f for f in self.map.get_factories_of_nation(self.name) if f.active]
         flags = self.map.get_flags_of_nation(self.name)
         return 2 * len(active_factories) + len(flags)
 
