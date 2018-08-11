@@ -124,10 +124,9 @@ class Map:
     def get_path(self, unit_id, target_location):
         if self.unit_directory[unit_id]['type'] == 'SHIP':
             reachable_locations, shortest_paths = self.get_paths_ship(unit_id, target_location)
-            return shortest_paths[target_location]
         else:
             reachable_locations, shortest_paths = self.get_paths_tank(unit_id, target_location)
-            return shortest_paths[target_location]
+        return None if target_location not in shortest_paths else shortest_paths[target_location]
 
     def get_paths(self, unit_id):
         if self.unit_directory[unit_id]['type'] == 'SHIP':
@@ -140,8 +139,7 @@ class Map:
         reachable_locations = [l for l in self.territories[location]['adjacency'] if territories[l]['type'] == 'WATER']
         if self.territories[location]['type'] == 'WATER':
             reachable_locations.append(location)
-        shortest_paths = {target_location: None}
-        shortest_paths.update({l: [l] for l in reachable_locations})
+        shortest_paths = {l: [l] for l in reachable_locations}
         return reachable_locations, shortest_paths
 
     def get_paths_tank(self, unit_id, target_location=None):
@@ -152,7 +150,7 @@ class Map:
         seen_locations = {location}
         reachable_locations = [location]
         unexplored_locations = [location]
-        shortest_paths = {location: [location], target_location: None}
+        shortest_paths = {location: [location]}
         if target_location is not None and territories[target_location]['type'] == 'WATER':
             logger.warning(f'WARNING: Cannot send a TANK ({unit_id}) to a WATER location ({target_location})')
             return reachable_locations, shortest_paths
@@ -166,13 +164,10 @@ class Map:
                 elif self.territories[l1]['type'] == 'LAND':
                     reachable_locations.append(l1)
                     shortest_paths[l1] = shortest_paths[l0] + [l1]
-                if l1 == target_location:
-                    shortest_paths[l1] = shortest_paths[l0] + [l1]
-                    return reachable_locations, shortest_paths
-                if trains_relevant and l1 in nation_home_territory_names:
-                    reachable_locations.append(l1)
-                    unexplored_locations.append(l1)
-                    shortest_paths[l1] = shortest_paths[l0] + [l1]
+                    if l1 == target_location:
+                        return reachable_locations, shortest_paths
+                    if trains_relevant and l1 in nation_home_territory_names:
+                        unexplored_locations.append(l1)
                 elif self.territories[l1]['type'] == 'WATER':
                     for unit in self.get_units_on_territory(l1, nation):
                         if unit['type'] == 'SHIP' and not unit['has_transported']:
