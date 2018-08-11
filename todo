@@ -1,0 +1,17 @@
+do we ever send ships to land?
+Breakage when unit 'goes to' original location - e.g. doesn't move - gives 'no path'
+should make some more tests for path routing stuff
+Implement factory deactivation
+Make units into classes - things are nicer that way
+Factories & bonds as classes?
+make the log file a lot nicer
+put on github
+clean up the path routing stuff (None, None)
+what are the most time consuming steps?
+better unit direction by using maximum flow algorithm (unit - ship - ship - target) - ship vertices have capacity 1
+
+
+DONE:
+proper random seed that works
+Log file in test ??
+Sending tanks to water
