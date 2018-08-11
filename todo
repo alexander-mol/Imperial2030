@@ -1,6 +1,4 @@
 Factories, territories & bonds as classes?
-Implement factory deactivation
-why don't we ever get to the second clause of unit movement - going to highly connected spot
 make the log file a lot nicer
 what are the most time consuming steps?
 ships should move after tanks - player strategy
@@ -15,3 +13,6 @@ put on github
 weird none stuff in paths
 clean up the path routing stuff (None, None)
 Make units into classes - things are nicer that way
+Auto kill when a factory produces with an enemy on it? - No because it can't produce
+Implement factory deactivation
+why don't we ever get to the second clause of unit movement - going to highly connected spot

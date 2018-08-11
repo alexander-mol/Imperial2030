@@ -74,6 +74,14 @@ class BasePlayer:
                     target_locations.append(location)
                     g.add_node(location)
                     g.add_edge(unit_id, location)
+                # or get an enemy factory
+                enemy_factories = \
+                    [f for f in game.map.get_factories_on_territory(location) if f.nation != game.active_nation.name]
+                if len(enemy_factories) > 0:
+                    for factory in enemy_factories:
+                        target_locations.append(location)
+                        g.add_node(location)
+                        g.add_edge(unit_id, location)
                 # alternatively if there's an enemy in our lands go for that too
                 elif location in game.map.nation_home_territories[game.active_nation.name]:
                     unit_nations = [u.nation for u in game.map.get_units_on_territory(location)]
@@ -91,7 +99,7 @@ class BasePlayer:
                 reachable_locations, _ = game.map.get_paths(unit_id)
                 for location in reachable_locations:
                     if location not in game.active_nation.get_home_territories():
-                        options.append((location, len(reachable_locations)))
+                        options.append((location, len(game.map.territories[location]['adjacency'])))
                 if len(options) > 0:
                     options.sort(key=lambda x: -x[1])
                     assignments.update({unit_id: options[0][0]})

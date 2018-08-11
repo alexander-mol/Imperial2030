@@ -20,7 +20,6 @@ class Map:
         self.next_factory_id = 0
         self.flags_by_territory = {t: None for t in self.territories}
 
-    # TODO implement disabling factories
     # TODO align use of location and territory
     # TODO handle peacefully entering locations (maybe add flag that gets reset) - difficult because intra-turn aspect
     # TODO implement killing factories
@@ -81,6 +80,7 @@ class Map:
                             [u for u in self.get_units_on_territory(old_location) if u.nation != factory.nation]
                         if len(disabling_units_on_territory) == 0:
                             factory.active = True
+                            logger.info(f'{factory} reactivated')
 
     def update_flag(self, unit_id):
         unit = self.unit_directory[unit_id]
@@ -204,7 +204,6 @@ class Map:
             return
         unit = self.unit_directory[unit_id]
         target_units = [u for u in self.get_units_on_territory(target_location) if u.nation != unit.nation]
-        target_factories = [f for f in self.get_factories_on_territory(target_location) if f.nation != unit.nation]
         if len(target_units) > 0:
             if target_nation is None:
                 target_unit = target_units[0]
@@ -218,11 +217,15 @@ class Map:
             self.delete_unit(target_unit.id)
             logger.info(f"Unit {unit_id} attacked {target_unit.id}")
             return
-        elif len(target_factories) > 0:
+        else:
+            # just walk in
+            self.move_along_path(unit_id, path)
+        target_factories = [f for f in self.get_factories_on_territory(target_location) if f.nation != unit.nation]
+        if len(target_factories) > 0:
             for factory in target_factories:
-                factory.active = False
-        # just walk in
-        self.move_along_path(unit_id, path)
+                if factory.active:
+                    factory.active = False
+                    logger.info(f"{factory} disabled by {unit}")
 
 
 class Unit:
