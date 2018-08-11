@@ -61,7 +61,7 @@ class BasePlayer:
         return self._generate_command_invest(invest_nation, buy_value, sell_value)
 
     def _get_maneuver_commands(self, game):
-        unit_ids = [u['id'] for u in game.active_nation.get_units()]
+        unit_ids = [u.id for u in game.active_nation.get_units()]
         g = nx.Graph()
         g.add_nodes_from(unit_ids)
         target_locations = []
@@ -76,7 +76,7 @@ class BasePlayer:
                     g.add_edge(unit_id, location)
                 # alternatively if there's an enemy in our lands go for that too
                 elif location in game.map.nation_home_territories[game.active_nation.name]:
-                    unit_nations = [u['nation'] for u in game.map.get_units_on_territory(location)]
+                    unit_nations = [u.nation for u in game.map.get_units_on_territory(location)]
                     if len(unit_nations) > 0 and game.active_nation.name not in unit_nations:
                         target_locations.append(location)
                         g.add_node(location)

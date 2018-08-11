@@ -128,7 +128,7 @@ class Game:
         elif command_type == 'Import':
             commands = self._extract_command_tuples(command_string)
             num_imports = min(static.MAX_IMPORT, self.active_nation.cash // static.IMPORT_COST_PER_UNIT)
-            [self.map.create_unit(c[0], c[1], self.active_nation.name) for c in commands[:num_imports]]
+            [self.map.create_unit(c[1], c[0], self.active_nation.name) for c in commands[:num_imports]]
             self.active_nation.mutate_cash(-num_imports * static.IMPORT_COST_PER_UNIT)
         elif command_type == 'Taxation':
             tax_val = self.active_nation.get_taxation_value()
