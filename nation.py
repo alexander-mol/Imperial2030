@@ -15,11 +15,10 @@ class Nation:
     def mutate_cash(self, amount):
         self.cash += amount
 
-    def get_taxation_value(self):
-        # TODO handle disabled factories properly here
-        active_factories = [f for f in self.map.get_factories_of_nation(self.name) if f.active]
+    def get_taxation_value(self, raw=False):
+        active_factories = [f for f in self.map.get_factories_of_nation(self.name) if f.active or raw]
         flags = self.map.get_flags_of_nation(self.name)
-        return 2 * len(active_factories) + len(flags)
+        return len(active_factories) * static.TAXATION_VALUE_OF_FACTORY + len(flags) * static.TAXATION_VALUE_OF_FLAG
 
     def get_unit_cost(self):
         return len(self.map.get_units_of_nation(self.name)) * static.TAXATION_COST_PER_UNIT

@@ -1,4 +1,3 @@
-Make units into classes - things are nicer that way
 Factories, territories & bonds as classes?
 Implement factory deactivation
 why don't we ever get to the second clause of unit movement - going to highly connected spot
@@ -15,3 +14,4 @@ Sending tanks to water
 put on github
 weird none stuff in paths
 clean up the path routing stuff (None, None)
+Make units into classes - things are nicer that way

@@ -22,9 +22,8 @@ class Map:
 
     # TODO implement disabling factories
     # TODO align use of location and territory
-    # TODO handle peacefully entering locations (maybe add flag that gets reset)
+    # TODO handle peacefully entering locations (maybe add flag that gets reset) - difficult because intra-turn aspect
     # TODO implement killing factories
-    # TODO transporting via ships should use optimal configuration
 
     def create_factory(self, location_name):
         location = self.territories[location_name]
@@ -38,10 +37,10 @@ class Map:
             raise(f'Failed to create factory for {location}')
 
     def produce_units(self, nation):
-        # TODO active factory provision
         for factory_id in self.factory_ids_by_nation[nation]:
             factory_obj = self.factory_directory[factory_id]
-            self.create_unit(factory_obj.type, factory_obj.location, factory_obj.nation)
+            if factory_obj.active:
+                self.create_unit(factory_obj.type, factory_obj.location, factory_obj.nation)
 
     def create_unit(self, type, location, nation):
         unit_obj = Unit(self.next_unit_id, type, location, nation)
@@ -50,13 +49,6 @@ class Map:
         self.unit_ids_by_territory[location].append(unit_obj.id)
         self.next_unit_id += 1
 
-    def move_unit_without_path_check(self, unit_id, target_location_name):
-        if not self.unit_directory[unit_id].has_moved:
-            self.unit_directory[unit_id].locaiton = target_location_name
-            self.unit_directory[unit_id].has_moved = True
-        else:
-            print(f'Tried to move unit {unit_id}, {self.unit_directory[unit_id]} but it was already moved this turn.')
-
     def move_along_path(self, unit_id, path):
         if self.unit_directory[unit_id].has_moved:
             raise(f'Tried to move unit {unit_id}, {self.unit_directory[unit_id]} but it was already moved this turn.')
@@ -64,13 +56,14 @@ class Map:
         new_location = path[-1]
         self.unit_ids_by_territory[old_location].remove(unit_id)
         self.unit_ids_by_territory[new_location].append(unit_id)
-        self.unit_directory[unit_id].location = new_location
-        self.unit_directory[unit_id].has_moved = True
+        unit = self.unit_directory[unit_id]
+        unit.location = new_location
+        unit.has_moved = True
         self.update_flag(unit_id)
-        if self.unit_directory[unit_id].type == 'TANK':
+        if unit.type == 'TANK':
             for l in path:
                 if self.territories[l]['type'] == 'WATER':
-                    units = self.get_units_on_territory(l, nation=self.unit_directory[unit_id].nation)
+                    units = self.get_units_on_territory(l, nation=unit.nation)
                     found_host = False
                     for u in units:
                         if u.type == 'SHIP' and not u.has_transported:
@@ -79,6 +72,15 @@ class Map:
                             break
                     if not found_host:
                         raise(f'Moving unit id {unit_id} along path {path} there was no available host ship at {l}')
+            # check for factory re-enabling
+            factories_on_old_territory = self.get_factories_on_territory(old_location)
+            if len(factories_on_old_territory) > 0:
+                for factory in factories_on_old_territory:
+                    if factory.nation != unit.nation:
+                        disabling_units_on_territory = \
+                            [u for u in self.get_units_on_territory(old_location) if u.nation != factory.nation]
+                        if len(disabling_units_on_territory) == 0:
+                            factory.active = True
 
     def update_flag(self, unit_id):
         unit = self.unit_directory[unit_id]
@@ -113,11 +115,21 @@ class Map:
         # TODO can be optimized by keeping a list of flags by nation
         return [territory for territory, owner_nation in self.flags_by_territory.items() if owner_nation == nation]
 
-    def refresh_units(self, nation):
+    def refresh(self, nation):
         for unit_id in self.unit_ids_by_nation[nation]:
             self.unit_directory[unit_id].has_moved = False
             if self.unit_directory[unit_id] == 'SHIP':
                 self.unit_directory[unit_id].has_transported = False
+        # for factory_id in self.factory_ids_by_nation[nation]:
+        #     factory_obj = self.factory_directory[factory_id]
+        #     enemy_units_on_factory = \
+        #         [u for u in self.get_units_on_territory(factory_obj.location) if u.nation != factory_obj.nation]
+        #     if len(enemy_units_on_factory) > 0:
+        #         if factory_obj.active:
+        #             logger.warning(f"WARNING: factory {factory_obj} thought it was active but it shouldn't have been")
+        #             factory_obj.active = False
+        #     else:
+        #         factory_obj.active = True
 
     def get_path(self, unit_id, target_location):
         if self.unit_directory[unit_id].type == 'SHIP':
@@ -192,6 +204,7 @@ class Map:
             return
         unit = self.unit_directory[unit_id]
         target_units = [u for u in self.get_units_on_territory(target_location) if u.nation != unit.nation]
+        target_factories = [f for f in self.get_factories_on_territory(target_location) if f.nation != unit.nation]
         if len(target_units) > 0:
             if target_nation is None:
                 target_unit = target_units[0]
@@ -204,9 +217,12 @@ class Map:
             self.delete_unit(unit_id)
             self.delete_unit(target_unit.id)
             logger.info(f"Unit {unit_id} attacked {target_unit.id}")
-        else:
-            # just walk in
-            self.move_along_path(unit_id, path)
+            return
+        elif len(target_factories) > 0:
+            for factory in target_factories:
+                factory.active = False
+        # just walk in
+        self.move_along_path(unit_id, path)
 
 
 class Unit:

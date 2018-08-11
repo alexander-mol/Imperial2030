@@ -34,7 +34,7 @@ class Game:
             logger.info(f"Player money: { {p.id: p.cash for p in self.players}}")
             logger.info(f"Nation money: { {n.name: n.cash for n in self.nations.values()}}")
             logger.info(f"Nation tax val: "
-                             f"{ {n.name: n.get_taxation_value() for n in self.nations.values()}}")
+                        f"{ {n.name: n.get_taxation_value() for n in self.nations.values()}}")
             logger.info(f"Nation power points: { {n.name: n.vp for n in self.nations.values()}}")
             logger.info(f"Nation units: { {n.name: n.get_units() for n in self.nations.values()}}")
 
@@ -42,14 +42,14 @@ class Game:
             if self.active_nation.name not in self.nation_to_player_map:  # if nobody owns the nation
                 self.update_active_nation()
                 continue
-            self.map.refresh_units(self.active_nation.name)
+            self.map.refresh(self.active_nation.name)
             command = self.nation_to_player_map[self.active_nation.name].get_turn_command(self)
             self.execute_command(command)
             self.update_active_nation()
             logger.info(f"Player money: { {p.id: p.cash for p in self.players}}")
             logger.info(f"Nation money: { {n.name: n.cash for n in self.nations.values()}}")
             logger.info(f"Nation tax val: "
-                             f"{ {n.name: n.get_taxation_value() for n in self.nations.values()}}")
+                        f"{ {n.name: n.get_taxation_value() for n in self.nations.values()}}")
             logger.info(f"Nation power points: { {n.name: n.vp for n in self.nations.values()}}")
             logger.info(f"Nation units: { {n.name: n.get_units() for n in self.nations.values()}}")
 

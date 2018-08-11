@@ -83,3 +83,16 @@ class TestMap(unittest.TestCase):
         assert self.sut.get_path(0, 'ROME') is None
         assert self.sut.get_path(0, 'PARIS') == ['LONDON', 'PARIS']
         assert self.sut.get_path(1, 'TURKEY') is None
+
+    def test_factory_disabling(self):
+        # factory is available - move unit onto it - check if disabled - wait one turn - move unit off - check active
+        self.sut.create_factory('SAN_FRANCISCO')
+        self.sut.create_unit('TANK', 'NEW_ORLEANS', 'CHINA')
+        assert self.sut.factory_directory[0].active
+        self.sut.attack(0, 'SAN_FRANCISCO')
+        assert not self.sut.factory_directory[0].active
+        self.sut.refresh('USA')
+        assert not self.sut.factory_directory[0].active
+        self.sut.refresh('CHINA')
+        self.sut.attack(0, 'CANADA')
+        assert self.sut.factory_directory[0].active
