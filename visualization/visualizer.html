@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Imperial 2030 visualizer</title>
+    <style>
+    	* { padding: 0; margin: 0; }
+    	canvas { background: #eee; display: block; margin: 0 auto; }
+    </style>
+</head>
+<body>
+
+<canvas id="canvas" width="480" height="320"></canvas>
+<script type="text/javascript" src="./example.json"></script>
+
+<script>
+
+var data = JSON.parse(example);
+
+
+console.log(data)
+var canvas = document.getElementById("canvas");
+var ctx = canvas.getContext("2d");
+
+ctx.fillStyle = '#F00';
+fillCircle(ctx, data[0]["units"][0]["location"][0], <data></data>[0]["units"][0]["location"][1], 5);
+
+function fillCircle(ctx, x, y, r) {
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, 2 * Math.PI);
+    ctx.fill();
+}
+</script>
+
+</body>
+</html>

@@ -37,6 +37,7 @@ class Game:
                         f"{ {n.name: n.get_taxation_value() for n in self.nations.values()}}")
             logger.info(f"Nation power points: { {n.name: n.vp for n in self.nations.values()}}")
             logger.info(f"Nation units: { {n.name: n.get_units() for n in self.nations.values()}}")
+            logger.info(f"Nation flags: { {n.name: n.get_flags() for n in self.nations.values()}}")
 
         while not self.game_finished():
             if self.active_nation.name not in self.nation_to_player_map:  # if nobody owns the nation
@@ -52,9 +53,11 @@ class Game:
                         f"{ {n.name: n.get_taxation_value() for n in self.nations.values()}}")
             logger.info(f"Nation power points: { {n.name: n.vp for n in self.nations.values()}}")
             logger.info(f"Nation units: { {n.name: n.get_units() for n in self.nations.values()}}")
+            logger.info(f"Nation flags: { {n.name: n.get_flags() for n in self.nations.values()}}")
 
         results = {'player_scores': {player.id: player.get_current_vp(self) for player in self.players},
                    'country_power': {n.name: n.vp for n in self.nations.values()},
+                   'player_investments': {p.id: p.get_interest_by_nation(self) for p in self.players},
                    'ply_count': self.ply_count
         }
         logger.info(results)
@@ -183,7 +186,10 @@ class Game:
 
     def _extract_command_tuples(self, command_string):
         command_type = command_string.split(' ')[0]
-        return [(c.split(' ')[0], c.split(' ')[1]) for c in command_string[len(command_type) + 1:].split(', ')]
+        command_elements = command_string[len(command_type) + 1:].split(', ')
+        if len(command_elements) > 0:
+            return [(c.split(' ')[0], c.split(' ')[1]) for c in command_elements]
+        return []
 
     def _tax_benefits(self, tax_value):
         power_points = self._get_bucket_value(tax_value, static.TAX_BENEFIT['buckets'], static.TAX_BENEFIT['power'])

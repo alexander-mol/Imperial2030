@@ -18,6 +18,7 @@ class Map:
         self.factory_ids_by_nation = {nation: [] for nation in NATION_TURN_LIST}
         self.factory_ids_by_territory = {territory: [] for territory in self.territories}
         self.next_factory_id = 0
+        self.flags_by_nation = {nation: [] for nation in NATION_TURN_LIST}
         self.flags_by_territory = {t: None for t in self.territories}
 
     # TODO align use of location and territory
@@ -86,6 +87,10 @@ class Map:
         unit = self.unit_directory[unit_id]
         territory_name = unit.location
         if self.territories[territory_name]['nation'] == 'NONE':
+            old_nation = self.flags_by_territory[territory_name]
+            if old_nation:
+                self.flags_by_nation[old_nation].remove(territory_name)
+            self.flags_by_nation[unit.nation].append(territory_name)
             self.flags_by_territory[territory_name] = unit.nation
 
     def delete_unit(self, unit_id):
@@ -113,7 +118,8 @@ class Map:
 
     def get_flags_of_nation(self, nation):
         # TODO can be optimized by keeping a list of flags by nation
-        return [territory for territory, owner_nation in self.flags_by_territory.items() if owner_nation == nation]
+        # return [territory for territory, owner_nation in self.flags_by_territory.items() if owner_nation == nation]
+        return self.flags_by_nation[nation]
 
     def refresh(self, nation):
         for unit_id in self.unit_ids_by_nation[nation]:
@@ -215,7 +221,7 @@ class Map:
             # handle killing
             self.delete_unit(unit_id)
             self.delete_unit(target_unit.id)
-            logger.info(f"Unit {unit_id} attacked {target_unit.id}")
+            logger.info(f"Unit {unit} attacked {target_unit}")
             return
         else:
             # just walk in

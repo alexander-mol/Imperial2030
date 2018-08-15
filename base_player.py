@@ -31,12 +31,18 @@ class BasePlayer:
         current_rondel_index = game.active_nation.rondel_index
         if current_rondel_index == 0:  # i.e. just before "Import"
             current_rondel_index += 1
+        if current_rondel_index == 2: # i.e. just before first Maneuver
+            if len(game.active_nation.get_units()) == 0:
+                current_rondel_index += 1
         if current_rondel_index == 3: # i.e. just before "Taxation"
             if game.active_nation.get_taxation_value() < static.TAX_BENEFIT['buckets'][0]:
                 current_rondel_index += 1
         if current_rondel_index == 4: # i.e. just before "Factory"
             if len(game.active_nation.get_factories()) == len(game.active_nation.get_home_territories()) or \
                     game.active_nation.cash < static.FACTORY_COST:
+                current_rondel_index += 1
+        if current_rondel_index == 6: # i.e. just before second Maneuver
+            if len(game.active_nation.get_units()) == 0:
                 current_rondel_index += 1
 
         command = static.RONDEL_POSITIONS[(current_rondel_index + 1) % len(static.RONDEL_POSITIONS)]
@@ -103,7 +109,7 @@ class BasePlayer:
                 if len(options) > 0:
                     options.sort(key=lambda x: -x[1])
                     assignments.update({unit_id: options[0][0]})
-        return self._generate_command_maneuver(assignments)
+        return self._generate_command_maneuver(assignments.items())
 
     def get_maximal_assignment(self, unit_ids, g, assignments):
         current_assignments = nx.max_weight_matching(g, maxcardinality=True)
@@ -158,6 +164,9 @@ class BasePlayer:
                 return buy_value, sell_value
         return max_investment_without_trade_in, 0
 
+    def get_interest_by_nation(self, game):
+        return {n: sum([b['interest'] for b in self.investments_by_nation[n]]) for n in self.investments_by_nation}
+
     def get_investment_in_nation(self, nation):
         return sum([b['value'] for b in self.investments_by_nation[nation]])
 
@@ -167,8 +176,8 @@ class BasePlayer:
     def _generate_command_production(self):
         return 'Production'
 
-    def _generate_command_maneuver(self, unit_id_to_target_location_dict):
-        return 'Maneuver ' + ', '.join([f'{u_id} {tl}' for u_id, tl in unit_id_to_target_location_dict.items()])
+    def _generate_command_maneuver(self, unit_id_to_target_location_tuples):
+        return 'Maneuver ' + ', '.join([f'{u_id} {tl}' for u_id, tl in unit_id_to_target_location_tuples])
 
     def _generate_command_investor(self):
         return 'Investor'

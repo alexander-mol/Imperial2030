@@ -1,8 +1,10 @@
 Factories, territories & bonds as classes?
 make the log file a lot nicer
 what are the most time consuming steps?
-ships should move after tanks - player strategy
 better unit direction by using maximum flow algorithm (unit - ship - ship - target) - ship vertices have capacity 1
+implement null hypothesis skipping in evolver
+make sure that guys can't have negative money from skipping on the rondel
+clean up game.py
 
 
 DONE:
@@ -16,3 +18,5 @@ Make units into classes - things are nicer that way
 Auto kill when a factory produces with an enemy on it? - No because it can't produce
 Implement factory deactivation
 why don't we ever get to the second clause of unit movement - going to highly connected spot
+make flag counting faster - it's actually a significant drag
+ships should move after tanks - player strategy
