@@ -3,9 +3,9 @@ import copy
 import time
 import _pickle
 
-mutation_rate = 0.3
-mutation_magnitude = 0.3
-pop_size = 8
+mutation_rate = 0.2
+mutation_magnitude = 0.2
+pop_size = 40
 num_generations = 300
 
 

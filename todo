@@ -1,10 +1,11 @@
-Factories, territories & bonds as classes?
+territories & bonds as classes?
 make the log file a lot nicer
 what are the most time consuming steps?
 better unit direction by using maximum flow algorithm (unit - ship - ship - target) - ship vertices have capacity 1
 implement null hypothesis skipping in evolver
 make sure that guys can't have negative money from skipping on the rondel
 clean up game.py
+smarter action selection (with optimization steps)
 
 
 DONE:

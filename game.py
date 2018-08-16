@@ -187,7 +187,7 @@ class Game:
     def _extract_command_tuples(self, command_string):
         command_type = command_string.split(' ')[0]
         command_elements = command_string[len(command_type) + 1:].split(', ')
-        if len(command_elements) > 0:
+        if command_elements != ['']:
             return [(c.split(' ')[0], c.split(' ')[1]) for c in command_elements]
         return []
 
@@ -205,8 +205,8 @@ class Game:
     def _get_new_rondel_index(self, command_type):
         rondel_position_names = list(static.RONDEL_POSITIONS.values())
         try:
-            new_index = rondel_position_names[self.active_nation.rondel_index:].index(command_type) \
-                        + self.active_nation.rondel_index
+            new_index = rondel_position_names[self.active_nation.rondel_index+1:].index(command_type) \
+                        + self.active_nation.rondel_index + 1
         except ValueError:
             new_index = rondel_position_names.index(command_type)
         return new_index

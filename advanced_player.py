@@ -23,30 +23,55 @@ class SmartInvestor(base_player.BasePlayer):
         return self._generate_command_invest(invest_nation, buy_value, sell_value)
 
     def get_turn_command(self, game):
-        current_rondel_index = game.active_nation.rondel_index
-        if current_rondel_index == 0:  # i.e. just before "Import"
-            current_rondel_index += 1
-        if current_rondel_index == 1:  # i.e. just before first "Production"
-            if len(game.active_nation.get_units()) > len(game.active_nation.get_flags()) + 6:
-                current_rondel_index += 1
-        if current_rondel_index == 2: # i.e. just before first Maneuver
-            if len(game.active_nation.get_units()) == 0:
-                current_rondel_index += 1
-        if current_rondel_index == 3: # i.e. just before "Taxation"
-            if game.active_nation.get_taxation_value() < static.TAX_BENEFIT['buckets'][0]:
-                current_rondel_index += 1
-        if current_rondel_index == 4: # i.e. just before "Factory"
-            if len(game.active_nation.get_factories()) == len(game.active_nation.get_home_territories()) or \
-                    game.active_nation.cash < static.FACTORY_COST:
-                current_rondel_index += 1
-        if current_rondel_index == 5:  # i.e. just before second "Production"
-            if len(game.active_nation.get_units()) > len(game.active_nation.get_flags()) + 6:
-                current_rondel_index += 1
-        if current_rondel_index == 6: # i.e. just before second Maneuver
-            if len(game.active_nation.get_units()) == 0:
-                current_rondel_index += 1
+        rondel_index_costs = game.active_nation.get_rondel_move_cost()
+        rondel_index_benefits = {}
 
-        command = static.RONDEL_POSITIONS[(current_rondel_index + 1) % len(static.RONDEL_POSITIONS)]
+        # Investor
+        rondel_index_benefits[0] = \
+            sum([b['value'] for b in self.investments_by_nation[game.active_nation.name]]) \
+            * self.dna['investor_own_interest_w'] \
+            - max([p.get_interest_by_nation(game)[game.active_nation.name] for p in game.players if p is not self]) * \
+            self.dna['investor_second_interest_w'] \
+            + self.dna['investor_const'] + self.dna['investor_tdp'] * game.ply_count
+
+        # Import
+        rondel_index_benefits[1] = 0
+
+        # Production
+        rondel_index_benefits[2] = len(game.active_nation.get_factories()) * self.dna['new_unit_prod_w'] \
+                                   - len(game.active_nation.get_units()) * self.dna['existing_unit_prod_w'] \
+                                   + self.dna['production_const'] + self.dna['production_tdp'] * game.ply_count
+        rondel_index_benefits[6] = rondel_index_benefits[2]
+
+        # Maneuver 1
+        rondel_index_benefits[3] = len(game.active_nation.get_units()) * self.dna['unit_move_w'] \
+                                   + self.dna['maneuver_const'] + self.dna['maneuver_tdp'] * game.ply_count
+        rondel_index_benefits[7] = rondel_index_benefits[3]
+
+        # Taxation
+        pp, bonus = game._tax_benefits(game.active_nation.get_taxation_value())
+        rondel_index_benefits[4] = pp * self.dna['tax_pp_w'] + bonus * self.dna['bonus_w'] \
+                                   + self.dna['taxation_const'] + self.dna['taxation_tdp'] * game.ply_count
+
+        # Factory
+        if game.active_nation.cash < static.FACTORY_COST or \
+                len(game.active_nation.get_factories()) == len(game.active_nation.get_home_territories()):
+            benefit = -1e6
+        else:
+            benefit = self.dna['factory_const'] + self.dna['factory_tdp'] * game.ply_count
+        rondel_index_benefits[5] = benefit
+
+        net_benefits = \
+            sorted([(i, rondel_index_benefits[i] - rondel_index_costs[i]) for i in range(len(rondel_index_costs))],
+                   key=lambda x: -x[1])
+        # determine action taken by selecting highest that can be afforded
+        selected_index = None
+        for i, v in net_benefits:
+            if rondel_index_costs[i] <= self.cash:
+                selected_index = i
+                break
+
+        command = static.RONDEL_POSITIONS[selected_index]
         if command == 'Factory':
             return self._generate_command_factory(self._decide_factory_build_location(game))
 
@@ -117,12 +142,12 @@ class SmartInvestor(base_player.BasePlayer):
         return rooting_nations
 
     def _get_nation_power(self, game, nation):
-        ply_count_x = (game.ply_count - self.dna['ply_count_offset']) / self.dna['ply_count_weight']
+        ply_count_x = (game.ply_count - self.dna['ply_count_offset']) / self.dna['ply_count_w']
         game_progression = self._sigmoid(ply_count_x)
-        return nation.vp * self.dna['vp_weight'] * game_progression \
-               + (len(nation.get_units()) * self.dna['num_units_weight']
-               + nation.get_taxation_value() * self.dna['tax_val_weight']
-               + nation.cash * self.dna['cash_weight']
+        return nation.vp * self.dna['vp_w'] * game_progression \
+               + (len(nation.get_units()) * self.dna['num_units_w']
+               + nation.get_taxation_value() * self.dna['tax_val_w']
+               + nation.cash * self.dna['cash_w']
                + self.dna[nation.name]) * (1 - game_progression)
 
     def _sigmoid(self, x):

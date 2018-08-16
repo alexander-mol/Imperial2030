@@ -117,8 +117,6 @@ class Map:
         return [self.factory_directory[factory_id] for factory_id in self.factory_ids_by_territory[territory_name]]
 
     def get_flags_of_nation(self, nation):
-        # TODO can be optimized by keeping a list of flags by nation
-        # return [territory for territory, owner_nation in self.flags_by_territory.items() if owner_nation == nation]
         return self.flags_by_nation[nation]
 
     def refresh(self, nation):
